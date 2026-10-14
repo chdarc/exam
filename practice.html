@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>刷题</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="assets/style/base.css">
+  <link rel="stylesheet" href="assets/style/components.css">
+  <link rel="stylesheet" href="assets/style/pages.css">
+</head>
+<body data-page="practice">
+  <header class="topbar">
+    <button class="topbar__btn" id="exitBtn">&#8249; 退出</button>
+    <div class="topbar__title" id="bankTitle"></div>
+    <div class="topbar__right" id="rightBox"></div>
+  </header>
+
+  <main class="practice">
+    <div class="practice__head">
+      <div class="q-meta">
+        <span class="q-meta__id" id="qId"></span>
+        <span class="q-meta__brief" id="qBrief"></span>
+      </div>
+      <button class="fav" id="favBtn" title="收藏 / 取消收藏">&#9734;</button>
+    </div>
+
+    <nav class="q-nav">
+      <button class="btn btn--ghost" id="prevBtn">&#8249; 上一题</button>
+      <div class="q-nav__jump">
+        <input id="jumpInput" type="text" inputmode="numeric" placeholder="题号">
+        <button class="btn btn--ghost" id="jumpBtn">跳转</button>
+      </div>
+      <button class="btn btn--ghost" id="nextBtn">下一题 &#8250;</button>
+    </nav>
+
+    <section class="q-card" id="qCard"></section>
+  </main>
+
+  <div class="overlay" id="summaryOverlay">
+    <div class="modal">
+      <div class="modal__head">
+        <h2 class="modal__title">考试结果</h2>
+        <button class="modal__close" id="closeSummary" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal__score" id="summaryScore"></div>
+      <div class="modal__note" id="summaryNote"></div>
+      <div class="modal__list" id="summaryList"></div>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" id="summaryBack">返回题库</button>
+        <button class="btn btn--primary" id="summaryReview">逐题回顾</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/script/config.js"></script>
+  <script src="assets/script/store.js"></script>
+  <script src="assets/script/data.js"></script>
+  <script src="assets/script/records.js"></script>
+  <script src="assets/script/session.js"></script>
+  <script src="assets/script/ui/common.js"></script>
+  <script src="assets/script/ui/practice.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>刷题测试网站</title>
+	<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+	<link rel="icon" type="image/x-icon" href="favicon.ico">
+	<link rel="stylesheet" href="assets/style/base.css">
+	<link rel="stylesheet" href="assets/style/components.css">
+	<link rel="stylesheet" href="assets/style/pages.css">
+</head>
+
+<body data-page="home">
+	<section class="cover" id="cover">
+		<div class="cover__bg" id="coverBg"></div>
+		<div class="cover__overlay"></div>
+		<div class="cover__inner">
+			<span class="cover__badge" id="coverBadge"></span>
+			<h1 class="cover__title" id="coverTitle"></h1>
+			<p class="cover__subtitle" id="coverSubtitle"></p>
+		</div>
+		<button class="cover__scroll" id="coverArrow" aria-label="下滑查看目录">
+			<span class="cover__arrow">&#8595;</span>
+			<span class="cover__hint">向下滑动</span>
+		</button>
+	</section>
+
+	<main class="catalog-section" id="catalogSection">
+		<div class="catalog" id="catalog"></div>
+		<footer class="site-footer">CHDARC copyright 2026 Serialist</footer>
+	</main>
+
+	<script src="assets/script/config.js"></script>
+	<script src="assets/script/store.js"></script>
+	<script src="assets/script/data.js"></script>
+	<script src="assets/script/records.js"></script>
+	<script src="assets/script/session.js"></script>
+	<script src="assets/script/ui/common.js"></script>
+	<script src="assets/script/ui/home.js"></script>
+</body>
+
+</html>

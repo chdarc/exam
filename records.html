@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>收藏 / 错题</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="assets/style/base.css">
+  <link rel="stylesheet" href="assets/style/components.css">
+  <link rel="stylesheet" href="assets/style/pages.css">
+</head>
+<body data-page="records">
+  <header class="topbar">
+    <button class="topbar__btn" id="backBtn">&#8249; 返回</button>
+    <div class="topbar__title" id="bankTitle"></div>
+    <div class="topbar__right"></div>
+  </header>
+
+  <main class="records">
+    <div class="tabs" role="tablist">
+      <button class="tab is-active" data-tab="favorite">收藏</button>
+      <button class="tab" data-tab="wrong">错题</button>
+    </div>
+
+    <div class="records__toolbar">
+      <span class="records__count" id="recordCount"></span>
+      <button class="btn btn--primary" id="practiceBtn">开始练习</button>
+    </div>
+
+    <ul class="records__list" id="recordList"></ul>
+  </main>
+
+  <script src="assets/script/config.js"></script>
+  <script src="assets/script/store.js"></script>
+  <script src="assets/script/data.js"></script>
+  <script src="assets/script/records.js"></script>
+  <script src="assets/script/session.js"></script>
+  <script src="assets/script/ui/common.js"></script>
+  <script src="assets/script/ui/records.js"></script>
+</body>
+</html>

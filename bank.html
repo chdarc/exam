@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>题库</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="assets/style/base.css">
+  <link rel="stylesheet" href="assets/style/components.css">
+  <link rel="stylesheet" href="assets/style/pages.css">
+</head>
+<body data-page="bank">
+  <header class="topbar">
+    <button class="topbar__btn" id="backBtn">&#8249; 返回</button>
+    <div class="topbar__title" id="bankTitle"></div>
+    <div class="topbar__right"></div>
+  </header>
+
+  <main class="bank">
+    <section class="bank__head card">
+      <h1 class="bank__title" id="headTitle"></h1>
+      <p class="bank__brief" id="bankBrief"></p>
+      <div class="bank__types" id="bankTypes"></div>
+    </section>
+
+    <section class="bank__stats card">
+      <div class="stat">
+        <span class="stat__num" id="statCorrect">0</span>
+        <span class="stat__label">作对</span>
+      </div>
+      <div class="stat">
+        <span class="stat__num" id="statWrong">0</span>
+        <span class="stat__label">错题</span>
+      </div>
+      <div class="stat">
+        <span class="stat__num" id="statTotal">0</span>
+        <span class="stat__label">总共</span>
+      </div>
+      <div class="bank__progress">
+        <div class="bank__progress-bar" id="progressBar"></div>
+      </div>
+      <span class="bank__progress-text" id="progressText">0%</span>
+    </section>
+
+    <section class="bank__modes" id="modeCards"></section>
+  </main>
+
+  <script src="assets/script/config.js"></script>
+  <script src="assets/script/store.js"></script>
+  <script src="assets/script/data.js"></script>
+  <script src="assets/script/records.js"></script>
+  <script src="assets/script/session.js"></script>
+  <script src="assets/script/ui/common.js"></script>
+  <script src="assets/script/ui/bank.js"></script>
+</body>
+</html>

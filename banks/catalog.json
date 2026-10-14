@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "cover": {
+    "badge": "CHDARC · 操作证考试",
+    "title": "业余电台操作证刷题",
+    "subtitle": "A / B / C 类操作证 · 刷题 · 模拟考试 · 错题本",
+    "background": "assets/cover.svg"
+  },
+  "lists": [
+    {
+      "id": "license",
+      "title": "操作证考试",
+      "banks": [
+        {
+          "id": "a",
+          "badge": "A",
+          "title": "A 类操作证题库",
+          "brief": "业余电台操作证书考试 A 类题库",
+          "count": 683
+        },
+        {
+          "id": "b",
+          "badge": "B",
+          "title": "B 类操作证题库",
+          "brief": "业余电台操作证书考试 B 类题库",
+          "count": 1143
+        },
+        {
+          "id": "c",
+          "badge": "C",
+          "title": "C 类操作证题库",
+          "brief": "业余电台操作证书考试 C 类题库",
+          "count": 1282
+        },
+        {
+          "id": "all",
+          "badge": "总",
+          "title": "操作证总题库",
+          "brief": "业余电台操作证书考试全量题库",
+          "count": 1375
+        }
+      ]
+    }
+  ]
+}
