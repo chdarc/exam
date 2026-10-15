@@ -1,8 +1,10 @@
 /**
  * ui/home.js —— 门户首页（封面 + 目录）
  *
- * 数据来源：banks/catalog.json（总目录）
- * 交互：下滑箭头平滑滚动到目录；点击题库卡片跳转题库信息页。
+ * 封面文案已直接写在 index.html 中（便于修改）；本模块只负责：
+ *  - 下滑箭头平滑滚动到目录；
+ *  - 从题库信息页返回（#catalog）时直接定位到目录区；
+ *  - 从 banks/catalog.json 渲染目录列表。
  */
 (function (global) {
   'use strict';
@@ -22,27 +24,18 @@
       });
     }
 
+    // 从题库信息页“返回”时（index.html#catalog）直接定位到目录区
+    if (location.hash === '#catalog') {
+      var section = qs('#catalogSection');
+      if (section) section.scrollIntoView({ block: 'start' });
+    }
+
     App.data.getCatalog().then(function (catalog) {
-      renderCover(catalog.cover || {});
       renderCatalog(catalog.lists || []);
     }).catch(function (err) {
       App.ui.toast('目录加载失败：' + err.message);
     });
   });
-
-  function renderCover(cover) {
-    var badge = qs('#coverBadge');
-    var title = qs('#coverTitle');
-    var sub = qs('#coverSubtitle');
-    if (badge) badge.textContent = cover.badge || '';
-    if (title) title.textContent = cover.title || '';
-    if (sub) sub.textContent = cover.subtitle || '';
-
-    if (cover.background) {
-      var bg = qs('#coverBg');
-      if (bg) bg.style.backgroundImage = 'url("' + App.url(cover.background) + '")';
-    }
-  }
 
   function renderCatalog(lists) {
     var wrap = qs('#catalog');
@@ -50,7 +43,10 @@
     wrap.innerHTML = '';
 
     if (!lists.length) {
-      wrap.appendChild(App.ui.el('div', { class: 'empty', text: '暂无题库，请先在 banks/catalog.json 中配置。' }));
+      wrap.appendChild(App.ui.el('div', {
+        class: 'empty',
+        text: (App.site && App.site.empty && App.site.empty.home) || '暂无题库，请先在 banks/catalog.json 中配置。'
+      }));
       return;
     }
 

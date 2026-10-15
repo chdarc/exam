@@ -19,11 +19,15 @@ banks/<id>/
 | `total` | number | 否 | 总题数（缺省时按 `questions.length`） |
 | `types` | object | 否 | 题型 → 数量映射，如 `{"single": 6, "multiple": 2, "subjective": 1}` |
 | `exam` | object | 否 | 模拟考试配置 |
-| `exam.duration` | number | 否 | 考试时长（秒），缺省 1800 |
-| `exam.count` | number | 否 | 考试抽题数，缺省为全部 |
+| `exam.duration` | number | 否 | 考试时长（秒） |
+| `exam.count` | number | 否 | 考试抽题总数 |
+| `exam.distribution` | object | 否 | 考试题型分布，如 `{"single": 32, "multiple": 8}`；配置后按题型各抽对应题数（缺省则按 `count` 随机抽，`count` 也缺省则抽全部） |
+| `exam.pass` | number | 否 | 及格线（答对题数），用于交卷后判定及格 / 未及格 |
 | `questions` | array | 是 | 题目列表 |
 
-> `types` 用于题库信息页展示，建议与题目实际分布一致。
+> `types` 为**题库总体**题型分布（题库信息页展示用）；`exam.distribution` 为**模拟考试**的题型分布。二者作用不同。
+
+> 2025 年版考核标准：A 类 40 题（32 单选 + 8 多选，40 分钟，及格 30）；B 类 60 题（45 单选 + 15 多选，60 分钟，及格 45）；C 类 90 题（70 单选 + 20 多选，90 分钟，及格 70）。
 
 ## 题目对象字段
 
@@ -69,7 +73,7 @@ banks/<id>/
   "brief": "示例题库",
   "total": 3,
   "types": { "single": 1, "multiple": 1, "subjective": 1 },
-  "exam": { "duration": 600, "count": 3 },
+  "exam": { "duration": 600, "count": 2, "distribution": { "single": 1, "multiple": 1 }, "pass": 1 },
   "questions": [
     {
       "id": 1,

@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>刷题</title>
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('examapp:theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" href="assets/style/base.css">
@@ -17,7 +27,11 @@
     <div class="topbar__right" id="rightBox"></div>
   </header>
 
-  <main class="practice">
+  <div class="practice__progress" id="practiceProgress">
+    <div class="practice__progress-bar" id="practiceProgressBar"></div>
+  </div>
+
+  <main class="practice" id="practiceMain">
     <div class="practice__head">
       <div class="q-meta">
         <span class="q-meta__id" id="qId"></span>
@@ -45,6 +59,7 @@
         <button class="modal__close" id="closeSummary" aria-label="关闭">&times;</button>
       </div>
       <div class="modal__score" id="summaryScore"></div>
+      <div class="modal__pass" id="summaryPass"></div>
       <div class="modal__note" id="summaryNote"></div>
       <div class="modal__list" id="summaryList"></div>
       <div class="modal__actions">
@@ -55,11 +70,13 @@
   </div>
 
   <script src="assets/script/config.js"></script>
+  <script src="assets/script/site.js"></script>
   <script src="assets/script/store.js"></script>
   <script src="assets/script/data.js"></script>
   <script src="assets/script/records.js"></script>
   <script src="assets/script/session.js"></script>
   <script src="assets/script/ui/common.js"></script>
   <script src="assets/script/ui/practice.js"></script>
+  <script src="assets/script/theme.js"></script>
 </body>
 </html>

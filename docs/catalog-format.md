@@ -1,16 +1,12 @@
 # 总目录格式（banks/catalog.json）
 
-总目录是门户首页的唯一数据来源，负责封面与题库列表展示。为保持首页**单次请求、加载轻量**，题库的 `count` 直接写在目录里（展示用）；题库本身的权威信息（总题数、题型分布、题目）以 `info.json` 为准。
+总目录是门户首页“题库列表”的数据来源。封面文案（标题 / 副标题 / 徽标）与页脚已直接写在 `index.html` 中，不在此文件里，便于修改。题库的 `count` 直接写在目录里（展示用）；题库本身的权威信息（总题数、题型分布、题目、考试配置）以 `banks/<id>/info.json` 为准。
 
 ## 字段说明
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `version` | number | 是 | 格式版本，当前为 `1` |
-| `cover` | object | 是 | 首页封面 |
-| `cover.title` | string | 是 | 封面主标题 |
-| `cover.subtitle` | string | 否 | 封面副标题 |
-| `cover.background` | string | 否 | 封面背景图，相对站点根（如 `assets/cover.svg`） |
 | `lists` | array | 是 | 目录分类列表 |
 | `lists[].id` | string | 否 | 分类标识 |
 | `lists[].title` | string | 是 | 分类标题 |
@@ -19,24 +15,20 @@
 | `banks[].title` | string | 是 | 题库标题 |
 | `banks[].brief` | string | 否 | 一句话简介 |
 | `banks[].count` | number | 否 | 展示用题数（建议与 info.json 的 total 保持一致） |
+| `banks[].badge` | string | 否 | 题库卡片左上角字母徽标（缺省时取 id 首字母大写） |
 
 ## 示例
 
 ```json
 {
   "version": 1,
-  "cover": {
-    "title": "业余无线电刷题",
-    "subtitle": "A / B 类操作证 · 刷题 · 模拟考试 · 错题本",
-    "background": "assets/cover.svg"
-  },
   "lists": [
     {
       "id": "license",
       "title": "操作证考试",
       "banks": [
-        { "id": "class-a", "title": "A 类操作证", "brief": "入门级题库", "count": 9 },
-        { "id": "class-b", "title": "B 类操作证", "brief": "进阶级题库", "count": 5 }
+        { "id": "a", "title": "A 类操作证", "brief": "入门级题库", "count": 683 },
+        { "id": "b", "title": "B 类操作证", "brief": "进阶级题库", "count": 1143 }
       ]
     }
   ]
@@ -46,5 +38,5 @@
 ## 校验要点
 
 - `version` 必须为 `1`；
-- `cover.title`、`lists` 非空；
+- `lists` 非空；
 - 每个 `banks[].id` 必须存在对应目录 `banks/<id>/info.json`，否则题库信息页会提示加载失败。

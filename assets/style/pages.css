@@ -10,7 +10,7 @@
   height: 100vh;
   min-height: 480px;
   overflow: hidden;
-  background: radial-gradient(120% 120% at 18% 12%, #1e3a8a 0%, #1d4ed8 42%, #6d28d9 100%);
+  background: radial-gradient(120% 130% at 18% 8%, #1e2b6b 0%, #4338ca 44%, #6d28d9 100%);
   color: #fff;
   scroll-snap-align: start;
   scroll-snap-stop: always;
@@ -18,16 +18,17 @@
 .cover__bg {
   position: absolute;
   inset: 0;
+  background-image: url(../cover.svg);
   background-size: cover;
   background-position: center;
   opacity: .28;
-  animation: coverPulse 9s ease-in-out infinite;
+  animation: coverPulse 10s ease-in-out infinite;
 }
 .cover__overlay {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(70% 70% at 50% 38%, rgba(255, 255, 255, .08), rgba(6, 12, 30, .32));
+    radial-gradient(70% 70% at 50% 38%, rgba(255, 255, 255, .07), rgba(6, 12, 30, .34));
 }
 .cover__inner {
   position: relative;
@@ -45,7 +46,7 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  letter-spacing: .12em;
+  letter-spacing: .14em;
   padding: 6px 16px;
   border: 1px solid rgba(255, 255, 255, .35);
   border-radius: 999px;
@@ -181,7 +182,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(59, 108, 246, .35);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, .32);
 }
 .bank-item__main { flex: 1; min-width: 0; }
 .bank-item__title { font-size: 17px; font-weight: 600; }
@@ -205,6 +206,16 @@
   padding: 4px 12px;
   border-radius: 999px;
 }
+.bank__exam { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.bank__exam-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-soft);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.bank__exam-text { font-size: 13px; color: var(--text-muted); }
 
 .bank__stats { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; margin-bottom: 24px; }
 .stat { display: flex; flex-direction: column; align-items: center; min-width: 64px; }
@@ -237,12 +248,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
 }
-.mode-card__icon--1 { background: var(--primary-soft); }
-.mode-card__icon--2 { background: #fdf3e2; }
-.mode-card__icon--3 { background: #f0ebfd; }
-.mode-card__icon--4 { background: #fef2e4; }
+.mode-card__icon svg { display: block; }
+.mode-card__icon--1 { background: var(--primary-soft); color: var(--primary-strong); }
+.mode-card__icon--2 { background: var(--primary-soft); color: var(--accent); }
+.mode-card__icon--3 { background: var(--success-soft); color: var(--success); }
+.mode-card__icon--4 { background: var(--warn-soft); color: var(--warn); }
 .mode-card__body { min-width: 0; }
 .mode-card__title { font-size: 17px; font-weight: 700; }
 .mode-card__desc { font-size: 13px; color: var(--text-muted); }
@@ -254,6 +265,21 @@
 /* ================= 刷题页 ================= */
 
 .practice { max-width: 760px; margin: 0 auto; padding: 20px 16px 60px; }
+
+/* 标题栏下方的答题进度条（sticky 跟随顶栏） */
+.practice__progress {
+  position: sticky;
+  top: 56px;
+  z-index: 45;
+  height: 3px;
+  background: var(--surface-2);
+}
+.practice__progress-bar {
+  height: 100%;
+  width: 0;
+  background: var(--grad);
+  transition: width .3s ease;
+}
 
 .practice__head {
   display: flex;
@@ -324,6 +350,7 @@
 .records .tabs { margin-bottom: 18px; }
 .records__toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .records__count { color: var(--text-muted); font-size: 14px; }
+.records__actions { display: flex; align-items: center; gap: 10px; }
 .records__list { display: flex; flex-direction: column; gap: 10px; }
 .record-item {
   display: flex;

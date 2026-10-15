@@ -9,6 +9,7 @@
  * 接口：
  *   App.session.MODES                       -> 支持的刷题模式数组
  *   App.session.shuffle(arr)                -> 返回打乱后的副本
+ *   App.session.shuffledIndices(n)          -> 返回打乱后的 [0..n-1]
  *   App.session.optionKeys(count)           -> ['A','B',...]
  *   App.session.buildIds(bank, mode, n)     -> 题目 id 顺序列表
  *   App.session.check(question, userAnswer) -> boolean（是否答对）
@@ -42,21 +43,50 @@
 
   function normArray(x) { return Array.isArray(x) ? x.slice().sort() : []; }
 
+  /** 模拟考试抽题：优先按 exam.distribution（题型分布），否则按 count / 全部。 */
+  function buildExam(bank, examCount) {
+    var exam = bank.exam || {};
+    var dist = exam.distribution;
+
+    if (dist && typeof dist === 'object') {
+      var pools = {};
+      (bank.questions || []).forEach(function (q) {
+        (pools[q.type] = pools[q.type] || []).push(String(q.id));
+      });
+      var picked = [];
+      Object.keys(dist).forEach(function (t) {
+        var pool = shuffle(pools[t] || []);
+        var n = Math.min(parseInt(dist[t], 10) || 0, pool.length);
+        for (var i = 0; i < n; i++) picked.push(pool[i]);
+      });
+      return shuffle(picked);
+    }
+
+    var all = (bank.questions || []).map(function (q) { return String(q.id); });
+    var a = shuffle(all);
+    var n = examCount > 0
+      ? Math.min(examCount, a.length)
+      : (exam && exam.count > 0 ? Math.min(exam.count, a.length) : a.length);
+    return a.slice(0, n);
+  }
+
   App.session = {
     MODES: ['sequential', 'random', 'exam', 'wrong', 'favorite'],
 
     shuffle: shuffle,
     optionKeys: optionKeys,
 
+    shuffledIndices: function (n) {
+      var idx = [];
+      for (var i = 0; i < n; i++) idx.push(i);
+      return shuffle(idx);
+    },
+
     buildIds: function (bank, mode, examCount) {
       var ids = (bank.questions || []).map(function (q) { return String(q.id); });
       if (mode === 'sequential') return ids;
       if (mode === 'random') return shuffle(ids);
-      if (mode === 'exam') {
-        var a = shuffle(ids);
-        var n = examCount > 0 ? Math.min(examCount, a.length) : a.length;
-        return a.slice(0, n);
-      }
+      if (mode === 'exam') return buildExam(bank, examCount);
       if (mode === 'wrong') return App.records.wrongList(bank.id);
       if (mode === 'favorite') return App.records.favoriteList(bank.id);
       return ids;

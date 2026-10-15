@@ -4,7 +4,8 @@
  * 职责：
  *  - DOM 创建 / HTML 转义 / 题型文案等纯展示工具；
  *  - 题目卡片渲染（题干、附加题干、选项、作答区、反馈），
- *    供 practice.js 复用（普通模式与考试模式共用）。
+ *    供 practice.js 复用（普通模式与考试模式共用）；
+ *  - 轻提示、确认弹窗。
  *
  * 接口：
  *   App.ui.h(str)                    -> HTML 转义
@@ -13,6 +14,7 @@
  *   App.ui.formatAnswer(q)           -> 把正确答案渲染为可读文本（含 HTML）
  *   App.ui.renderMedia(bank, list)   -> 渲染附加题干，返回容器元素
  *   App.ui.renderQuestion(opts)      -> 渲染题目卡片（见下方 opts 说明）
+ *   App.ui.confirm(message, onOk)    -> 确认弹窗
  *   App.ui.toast(msg)                -> 轻提示
  */
 (function (global) {
@@ -24,6 +26,8 @@
     multiple:   { label: '多选', cls: 'chip--multiple' },
     subjective: { label: '主观', cls: 'chip--subjective' }
   };
+
+  var T = (App.site && App.site.ui) || {};
 
   App.ui = App.ui || {};
 
@@ -66,6 +70,26 @@
     }, 1800);
   };
 
+  /** 确认弹窗：message 为提示文字，onOk 在用户点击“确定”后调用。 */
+  App.ui.confirm = function (message, onOk) {
+    var overlay = App.ui.el('div', { class: 'overlay' });
+    var modal = App.ui.el('div', { class: 'modal modal--confirm' }, [
+      App.ui.el('div', { class: 'modal__body', text: message }),
+      App.ui.el('div', { class: 'modal__actions' }, [
+        App.ui.el('button', { class: 'btn btn--ghost', type: 'button', text: T.cancel || '取消', onclick: close }),
+        App.ui.el('button', { class: 'btn btn--danger', type: 'button', text: T.confirm || '确定', onclick: ok })
+      ])
+    ]);
+
+    function close() { overlay.parentNode && overlay.parentNode.removeChild(overlay); }
+    function ok() { close(); if (onOk) onOk(); }
+
+    overlay.appendChild(modal);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+    document.body.appendChild(overlay);
+    requestAnimationFrame(function () { overlay.classList.add('is-open'); });
+  };
+
   /* ---------- 题目渲染 ---------- */
 
   function optionText(q, key) {
@@ -100,7 +124,7 @@
           class: 'media media--file', href: url, download: m.label || '', target: '_blank', rel: 'noopener'
         }, [
           App.ui.el('span', { class: 'media__icon', html: '&#8681;' }),
-          App.ui.el('span', { text: m.label || '下载附件' })
+          App.ui.el('span', { text: m.label || (T.download || '下载附件') })
         ]));
       } else if (m.type === 'audio') {
         box.appendChild(App.ui.el('div', { class: 'media media--audio' }, [
@@ -122,6 +146,7 @@
    *   bank, q,              // 题库与题目
    *   mode,                 // 'normal' | 'exam'
    *   value,                // 当前已保存作答（单选:'A' / 多选:['A','C'] / 主观:'文本'）
+   *   order,                // 选项展示顺序（原选项索引数组，可选；缺省按原顺序）
    *   result,               // null | { ok: boolean } —— 非空时展示反馈并锁定
    *   selfMark,             // boolean —— 主观题“提交后待自评”状态
    *   onSingle(key),        // 单选点击（normal 模式=判题，exam 模式=保存）
@@ -161,7 +186,16 @@
   function renderOptions(opts) {
     var q = opts.q;
     var multi = q.type === 'multiple';
-    var keys = App.session.optionKeys((q.options || []).length);
+    var optTexts = q.options || [];
+    var keys = App.session.optionKeys(optTexts.length);
+
+    // 选项展示顺序：默认原顺序；可传入打乱后的“原索引”数组
+    var order = opts.order;
+    if (!order || order.length !== optTexts.length) {
+      order = [];
+      for (var k = 0; k < optTexts.length; k++) order.push(k);
+    }
+
     var selected = multi
       ? (Array.isArray(opts.value) ? opts.value : [])
       : (opts.value != null ? [String(opts.value)] : []);
@@ -169,8 +203,9 @@
     var locked = !!opts.result; // 判题后锁定
     var wrap = App.ui.el('div', { class: 'q-options' });
 
-    (q.options || []).forEach(function (text, i) {
-      var key = keys[i];
+    order.forEach(function (oi) {
+      var key = keys[oi];
+      var text = optTexts[oi];
       var isOn = selected.indexOf(key) >= 0;
       var cls = ['opt', multi ? 'opt--multiple' : 'opt--single'];
       if (isOn) cls.push('is-selected');
@@ -202,7 +237,7 @@
 
     // 多选：确定键
     if (multi && !locked) {
-      var confirmBtn = App.ui.el('button', { class: 'btn btn--primary q-options__confirm', type: 'button', text: '确定' });
+      var confirmBtn = App.ui.el('button', { class: 'btn btn--primary q-options__confirm', type: 'button', text: T.confirm || '确定' });
       confirmBtn.addEventListener('click', function () {
         if (opts.onMultipleSubmit) opts.onMultipleSubmit(selected.slice());
       });
@@ -216,7 +251,7 @@
     var locked = !!opts.result || !!opts.selfMark;
     var ta = App.ui.el('textarea', {
       class: 'q-subjective__area',
-      placeholder: '请输入你的作答…'
+      placeholder: T.answerPlaceholder || '请输入你的作答…'
     });
     ta.value = opts.value || '';
     ta.disabled = locked;
@@ -228,7 +263,7 @@
     wrap.appendChild(ta);
 
     if (!locked) {
-      var btn = App.ui.el('button', { class: 'btn btn--primary q-subjective__submit', type: 'button', text: '提交答案' });
+      var btn = App.ui.el('button', { class: 'btn btn--primary q-subjective__submit', type: 'button', text: T.submitAnswer || '提交答案' });
       btn.addEventListener('click', function () {
         if (opts.onSubjectiveSubmit) opts.onSubjectiveSubmit(ta.value);
       });
@@ -240,11 +275,11 @@
   function renderSelfMark(opts) {
     var q = opts.q;
     var box = App.ui.el('div', { class: 'feedback feedback--selfmark' }, [
-      App.ui.el('div', { class: 'feedback__ref', html: '<strong>参考答案：</strong>' + App.ui.formatAnswer(q) }),
+      App.ui.el('div', { class: 'feedback__ref', html: '<strong>' + (T.reference || '参考答案：') + '</strong>' + App.ui.formatAnswer(q) }),
       App.ui.el('div', { class: 'feedback__ref-desc', html: App.ui.h(q.explain || '') }),
       App.ui.el('div', { class: 'feedback__selfmark' }, [
-        App.ui.el('button', { class: 'btn btn--success', type: 'button', text: '我答对了', onclick: function () { opts.onSelfMark && opts.onSelfMark(true); } }),
-        App.ui.el('button', { class: 'btn btn--danger-ghost', type: 'button', text: '我答错了', onclick: function () { opts.onSelfMark && opts.onSelfMark(false); } })
+        App.ui.el('button', { class: 'btn btn--success', type: 'button', text: T.selfRight || '我答对了', onclick: function () { opts.onSelfMark && opts.onSelfMark(true); } }),
+        App.ui.el('button', { class: 'btn btn--danger-ghost', type: 'button', text: T.selfWrong || '我答错了', onclick: function () { opts.onSelfMark && opts.onSelfMark(false); } })
       ])
     ]);
     return box;
@@ -257,20 +292,20 @@
     if (q.type === 'subjective') {
       box.classList.add('feedback--subjective');
       var headHtml = ok === true
-        ? '<span class="feedback__icon">&#10003;</span> 已标记：回答正确'
+        ? '<span class="feedback__icon">&#10003;</span> ' + (T.markedRight || '已标记：回答正确')
         : ok === false
-          ? '<span class="feedback__icon">&#10007;</span> 已标记：回答错误'
-          : '<span class="feedback__icon">&#9998;</span> 主观题（对照参考答案）';
+          ? '<span class="feedback__icon">&#10007;</span> ' + (T.markedWrong || '已标记：回答错误')
+          : '<span class="feedback__icon">&#9998;</span> ' + (T.subjectiveHead || '主观题（对照参考答案）');
       box.appendChild(App.ui.el('div', { class: 'feedback__head', html: headHtml }));
-      box.appendChild(App.ui.el('div', { class: 'feedback__ref', html: '<strong>参考答案：</strong>' + App.ui.formatAnswer(q) }));
-      if (q.explain) box.appendChild(App.ui.el('div', { class: 'feedback__explain', html: '<strong>题解：</strong>' + App.ui.h(q.explain) }));
+      box.appendChild(App.ui.el('div', { class: 'feedback__ref', html: '<strong>' + (T.reference || '参考答案：') + '</strong>' + App.ui.formatAnswer(q) }));
+      if (q.explain) box.appendChild(App.ui.el('div', { class: 'feedback__explain', html: '<strong>' + (T.explain || '题解：') + '</strong>' + App.ui.h(q.explain) }));
       return box;
     }
 
     box.appendChild(App.ui.el('div', { class: 'feedback__head', html: ok
-      ? '<span class="feedback__icon">&#10003;</span> 回答正确'
-      : '<span class="feedback__icon">&#10007;</span> 回答错误，正确答案：<b>' + App.ui.formatAnswer(q) + '</b>' }));
-    if (q.explain) box.appendChild(App.ui.el('div', { class: 'feedback__explain', html: '<strong>题解：</strong>' + App.ui.h(q.explain) }));
+      ? '<span class="feedback__icon">&#10003;</span> ' + (T.correct || '回答正确')
+      : '<span class="feedback__icon">&#10007;</span> ' + (T.wrongAnswer || '回答错误，正确答案：') + '<b>' + App.ui.formatAnswer(q) + '</b>' }));
+    if (q.explain) box.appendChild(App.ui.el('div', { class: 'feedback__explain', html: '<strong>' + (T.explain || '题解：') + '</strong>' + App.ui.h(q.explain) }));
     return box;
   }
 })(window);

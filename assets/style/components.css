@@ -1,6 +1,6 @@
 /* ============================================================
    components.css —— 跨页面复用组件
-   顶栏、按钮、chip、tabs、选项、反馈、媒体、提示、弹窗等
+   顶栏、按钮、chip、tabs、选项、反馈、媒体、提示、弹窗、主题按钮等
    ============================================================ */
 
 /* ---------- 顶栏 ---------- */
@@ -13,7 +13,7 @@
   gap: 12px;
   height: 56px;
   padding: 0 16px;
-  background: rgba(255, 255, 255, .86);
+  background: var(--surface-translucent);
   backdrop-filter: saturate(180%) blur(12px);
   -webkit-backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--border);
@@ -76,6 +76,8 @@
 .btn--ghost:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
 .btn--success { background: var(--success); color: #fff; }
 .btn--success:hover { filter: brightness(.95); }
+.btn--danger { background: var(--danger); color: #fff; }
+.btn--danger:hover { filter: brightness(.95); }
 .btn--danger-ghost { background: var(--surface); border-color: var(--danger); color: var(--danger); }
 .btn--danger-ghost:hover { background: var(--danger-soft); }
 .btn--sm { padding: 6px 12px; font-size: 13px; }
@@ -90,8 +92,8 @@
   margin-bottom: 12px;
 }
 .chip--single { background: var(--primary-soft); color: var(--primary-strong); }
-.chip--multiple { background: #fdf3e2; color: #b45309; }
-.chip--subjective { background: #f0ebfd; color: #6d28d9; }
+.chip--multiple { background: var(--warn-soft); color: var(--warn); }
+.chip--subjective { background: var(--primary-soft); color: var(--accent); }
 
 /* ---------- 选项 ---------- */
 .q-options { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
@@ -267,10 +269,19 @@
 .modal__close { border: none; background: transparent; font-size: 26px; color: var(--text-muted); line-height: 1; }
 .modal__close:hover { color: var(--text); }
 .modal__score { text-align: center; font-size: 30px; font-weight: 800; padding: 18px 0 4px; }
+.modal__pass { text-align: center; font-size: 15px; font-weight: 600; padding: 0 20px 8px; }
+.modal__pass.is-pass { color: var(--success); }
+.modal__pass.is-fail { color: var(--danger); }
+.modal__pass:empty { display: none; }
 .modal__note { text-align: center; color: var(--text-muted); font-size: 13px; padding: 0 20px 8px; }
 .modal__list { overflow-y: auto; padding: 8px 20px; }
 .modal__actions { display: flex; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--border); }
 .modal__actions .btn { flex: 1; }
+
+/* 确认弹窗 */
+.modal--confirm { max-width: 380px; }
+.modal--confirm .modal__body { padding: 26px 24px; font-size: 15px; line-height: 1.7; text-align: center; }
+.modal--confirm .modal__actions { border-top: none; padding: 0 20px 20px; }
 
 .summary-item {
   display: flex;
@@ -288,3 +299,23 @@
 .summary-item--ok .summary-item__res { color: var(--success); }
 .summary-item--bad .summary-item__res { color: var(--danger); }
 .summary-item--subj .summary-item__res { color: var(--text-muted); }
+
+/* ---------- 主题切换按钮 ---------- */
+.theme-toggle {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: color .15s, border-color .15s, transform .15s;
+}
+.theme-toggle:hover { color: var(--primary); border-color: var(--primary); transform: translateY(-1px); }

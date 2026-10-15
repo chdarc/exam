@@ -4,6 +4,16 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>刷题测试网站</title>
+	<script>
+		(function () {
+			var t = null;
+			try { t = localStorage.getItem('examapp:theme'); } catch (e) {}
+			if (t !== 'light' && t !== 'dark') {
+				t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+			}
+			document.documentElement.setAttribute('data-theme', t);
+		})();
+	</script>
 	<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 	<link rel="icon" type="image/x-icon" href="favicon.ico">
 	<link rel="stylesheet" href="assets/style/base.css">
@@ -16,9 +26,9 @@
 		<div class="cover__bg" id="coverBg"></div>
 		<div class="cover__overlay"></div>
 		<div class="cover__inner">
-			<span class="cover__badge" id="coverBadge"></span>
-			<h1 class="cover__title" id="coverTitle"></h1>
-			<p class="cover__subtitle" id="coverSubtitle"></p>
+			<span class="cover__badge">CHDARC · 操作证考试</span>
+			<h1 class="cover__title">业余电台操作证刷题</h1>
+			<p class="cover__subtitle">A / B / C 类操作证 · 刷题 · 模拟考试 · 错题本</p>
 		</div>
 		<button class="cover__scroll" id="coverArrow" aria-label="下滑查看目录">
 			<span class="cover__arrow">&#8595;</span>
@@ -32,12 +42,14 @@
 	</main>
 
 	<script src="assets/script/config.js"></script>
+	<script src="assets/script/site.js"></script>
 	<script src="assets/script/store.js"></script>
 	<script src="assets/script/data.js"></script>
 	<script src="assets/script/records.js"></script>
 	<script src="assets/script/session.js"></script>
 	<script src="assets/script/ui/common.js"></script>
 	<script src="assets/script/ui/home.js"></script>
+	<script src="assets/script/theme.js"></script>
 </body>
 
 </html>

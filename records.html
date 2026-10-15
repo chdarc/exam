@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>收藏 / 错题</title>
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('examapp:theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" href="assets/style/base.css">
@@ -25,18 +35,23 @@
 
     <div class="records__toolbar">
       <span class="records__count" id="recordCount"></span>
-      <button class="btn btn--primary" id="practiceBtn">开始练习</button>
+      <div class="records__actions">
+        <button class="btn btn--danger-ghost" id="clearBtn">清除记录</button>
+        <button class="btn btn--primary" id="practiceBtn">开始练习</button>
+      </div>
     </div>
 
     <ul class="records__list" id="recordList"></ul>
   </main>
 
   <script src="assets/script/config.js"></script>
+  <script src="assets/script/site.js"></script>
   <script src="assets/script/store.js"></script>
   <script src="assets/script/data.js"></script>
   <script src="assets/script/records.js"></script>
   <script src="assets/script/session.js"></script>
   <script src="assets/script/ui/common.js"></script>
   <script src="assets/script/ui/records.js"></script>
+  <script src="assets/script/theme.js"></script>
 </body>
 </html>

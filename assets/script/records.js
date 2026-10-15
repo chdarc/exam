@@ -87,6 +87,20 @@
       return { total: total, correct: correct, wrong: wrong, done: correct + wrong };
     },
 
-    clear: function (bankId) { App.store.remove(key(bankId)); }
+    clear: function (bankId) { App.store.remove(key(bankId)); },
+
+    clearFavorites: function (bankId) {
+      var r = App.records.get(bankId);
+      r.favorite = [];
+      App.store.set(key(bankId), r);
+    },
+
+    clearWrong: function (bankId) {
+      var r = App.records.get(bankId);
+      Object.keys(r.answer).forEach(function (q) {
+        if (r.answer[q] === 'wrong') delete r.answer[q];
+      });
+      App.store.set(key(bankId), r);
+    }
   };
 })(window);

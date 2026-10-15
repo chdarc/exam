@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>题库</title>
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('examapp:theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" href="assets/style/base.css">
@@ -22,6 +32,7 @@
       <h1 class="bank__title" id="headTitle"></h1>
       <p class="bank__brief" id="bankBrief"></p>
       <div class="bank__types" id="bankTypes"></div>
+      <div class="bank__exam" id="bankExam"></div>
     </section>
 
     <section class="bank__stats card">
@@ -47,11 +58,13 @@
   </main>
 
   <script src="assets/script/config.js"></script>
+  <script src="assets/script/site.js"></script>
   <script src="assets/script/store.js"></script>
   <script src="assets/script/data.js"></script>
   <script src="assets/script/records.js"></script>
   <script src="assets/script/session.js"></script>
   <script src="assets/script/ui/common.js"></script>
   <script src="assets/script/ui/bank.js"></script>
+  <script src="assets/script/theme.js"></script>
 </body>
 </html>
