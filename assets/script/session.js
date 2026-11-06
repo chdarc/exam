@@ -71,7 +71,7 @@
   }
 
   App.session = {
-    MODES: ['sequential', 'random', 'exam', 'wrong', 'favorite'],
+    MODES: ['sequential', 'random', 'exam', 'review', 'wrong', 'favorite'],
 
     shuffle: shuffle,
     optionKeys: optionKeys,

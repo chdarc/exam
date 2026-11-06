@@ -1,10 +1,12 @@
 /**
  * ui/practice.js —— 刷题页（做题页面）
  *
- * 支持模式：顺序 / 乱序 / 模拟考试 / 错题 / 收藏。
+ * 支持模式：顺序 / 乱序 / 模拟考试 / 复习（review）/ 错题 / 收藏。
  *  - 普通模式：作答后立即判题并记录；单选答对后自动进入下一题；
- *  - 考试模式：先作答（可自由跳转），倒计时结束后或手动交卷统一评分；
- *  - 选择题选项在所有模式下随机乱序（同一题本次会话内顺序固定）；
+ *  - 考试模式：先作答（可自由跳转，选择实时保存），倒计时结束后或手动交卷统一评分，
+ *    交卷后跳转到「考试记录」页（不再弹窗）；
+ *  - 复习模式：读取某次历史考试的答题明细，锁定选项并显示答案与题解（逐题查看 / 错题回顾）；
+ *  - 选择题选项在所有模式下随机乱序，序号按显示位置重排（A/B/C/D 不跟原题走）；
  *  - 移动端支持左右滑动切换题目；
  *  - 顶栏显示已答/总数，并在标题栏下显示进度条。
  *
@@ -29,6 +31,7 @@
     results: {},     // 题号 -> { ok: boolean|null }
     selfMark: {},    // 题号 -> boolean（主观题待自评）
     optionOrder: {}, // 题号 -> 选项原索引数组（本次会话内稳定的乱序）
+    review: null,    // { id, scope } —— 复习模式：读取某次历史考试
     exam: { active: false, submitted: false, remain: 0, timerId: null }
   };
 
@@ -41,6 +44,10 @@
     if (App.session.MODES.indexOf(mode) < 0) mode = 'sequential';
     state.mode = mode;
     state.exam.active = (mode === 'exam');
+    state.review = mode === 'review' ? {
+      id: App.util.getParam('attempt'),
+      scope: App.util.getParam('scope') === 'wrong' ? 'wrong' : 'all'
+    } : null;
     var examCount = App.util.getIntParam('count', 0);
     var jumpId = App.util.getParam('q');
 
@@ -52,7 +59,19 @@
       document.title = bank.title + ' · 刷题';
       (bank.questions || []).forEach(function (q) { state.byId[String(q.id)] = q; });
 
+      if (state.review) { initReview(bank); return; }
+
       state.ids = App.session.buildIds(bank, mode, examCount);
+
+      // 考试模式预先生成全部选项顺序：交卷结果页的答案序号与做题时看到的一致
+      if (state.exam.active) {
+        state.ids.forEach(function (id) {
+          var q = state.byId[id];
+          if (q && q.options && q.options.length) {
+            state.optionOrder[id] = App.session.shuffledIndices(q.options.length);
+          }
+        });
+      }
 
       if (state.exam.active) {
         var dur = (bank.exam && bank.exam.duration) ? bank.exam.duration : App.config.defaultExamDuration;
@@ -72,7 +91,9 @@
   function bindStatic() {
     qs('#exitBtn').addEventListener('click', function () {
       var id = state.bank ? state.bank.id : App.util.getParam('bank');
-      if (state.mode === 'wrong' || state.mode === 'favorite') {
+      if (state.review) {
+        location.href = scoresUrl(id, state.review.id);
+      } else if (state.mode === 'wrong' || state.mode === 'favorite') {
         location.href = App.url('records.html?bank=' + encodeURIComponent(id) + '&tab=' + state.mode);
       } else {
         location.href = App.url('bank.html?id=' + encodeURIComponent(id));
@@ -83,11 +104,6 @@
     qs('#jumpBtn').addEventListener('click', doJump);
     qs('#jumpInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') doJump(); });
     qs('#favBtn').addEventListener('click', toggleFav);
-    qs('#closeSummary').addEventListener('click', closeSummary);
-    qs('#summaryBack').addEventListener('click', function () {
-      location.href = App.url('bank.html?id=' + encodeURIComponent(state.bank.id));
-    });
-    qs('#summaryReview').addEventListener('click', closeSummary);
   }
 
   /** 移动端：左右滑动切换上一题 / 下一题。 */
@@ -108,6 +124,45 @@
         if (dx < 0) next(); else prev();
       }
     }, { passive: true });
+  }
+
+  /* ---------------- 复习模式：读取历史考试明细 ---------------- */
+
+  function scoresUrl(bankId, attemptId) {
+    var url = 'scores.html?bank=' + encodeURIComponent(bankId);
+    if (attemptId) url += '&attempt=' + encodeURIComponent(attemptId);
+    return App.url(url);
+  }
+
+  function initReview(bank) {
+    var attempt = state.review.id ? App.records.attempt(state.review.id) : null;
+    if (!attempt || !attempt.ids || !attempt.ids.length) {
+      App.ui.toast('未找到该次考试的答题记录');
+      location.replace(scoresUrl(bank.id));
+      return;
+    }
+
+    var wrong = state.review.scope === 'wrong';
+    state.ids = attempt.ids.filter(function (id) {
+      if (!state.byId[String(id)]) return false;
+      return wrong ? attempt.results[String(id)] === false : true;
+    });
+    if (!state.ids.length) {
+      App.ui.toast(wrong ? '本次考试没有错题' : '该次考试没有可回顾的题目');
+      location.replace(scoresUrl(bank.id, attempt.id));
+      return;
+    }
+
+    state.answers = attempt.answers || {};
+    state.optionOrder = attempt.order || {};
+    state.results = {};
+    attempt.ids.forEach(function (id) {
+      var ok = attempt.results[String(id)];
+      state.results[id] = { ok: (ok === true || ok === false) ? ok : null };
+    });
+
+    document.title = bank.title + ' · ' + (wrong ? '错题回顾' : '逐题查看');
+    render();
   }
 
   /* ---------------- 状态查询 ---------------- */
@@ -167,7 +222,9 @@
   }
 
   function renderTop() {
-    qs('#bankTitle').textContent = state.bank ? state.bank.title : '';
+    qs('#bankTitle').textContent = state.bank
+      ? (state.review ? (state.review.scope === 'wrong' ? '错题回顾' : '逐题查看') : state.bank.title)
+      : '';
     var right = qs('#rightBox');
     right.innerHTML = '';
     var done = answeredCount();
@@ -219,7 +276,9 @@
 
   function renderEmpty() {
     qs('#qCard').innerHTML = '';
-    var msg = state.mode === 'wrong' ? (S.practice && S.practice.wrong)
+    var msg = state.review
+      ? (state.review.scope === 'wrong' ? '本次考试没有错题。' : '该次考试没有可回顾的题目。')
+      : state.mode === 'wrong' ? (S.practice && S.practice.wrong)
       : state.mode === 'favorite' ? (S.practice && S.practice.favorite)
       : (S.practice && S.practice.none);
     qs('#qCard').appendChild(App.ui.el('div', { class: 'empty', text: msg || '该题库暂无题目。' }));
@@ -245,9 +304,13 @@
       selfMark: !!state.selfMark[q.id],
       onSingle: isExam ? examSingle : grade,
       onMultipleChange: isExam ? examMultipleChange : normalMultipleChange,
-      onMultipleSubmit: isExam ? examMultipleSubmit : grade,
+      onMultipleSubmit: isExam ? null : grade,
+      multiHint: q.type !== 'multiple' ? '' : (isExam
+        ? (E.multiHintExam || '选择即记录，无需确认；交卷后统一判题')
+        : (E.multiHint || '可多选，选好后点「提交答案」判题')),
       onSubjectiveChange: isExam ? examSubjectiveChange : function () {},
-      onSubjectiveSubmit: isExam ? examSubjectiveSubmit : submitSubjective,
+      onSubjectiveSubmit: isExam ? null : submitSubjective,
+      subjectiveHint: isExam ? (E.subjectiveHint || '作答实时记录；交卷后统一评分') : '',
       onSelfMark: selfMark
     });
   }
@@ -294,11 +357,21 @@
 
   /* ---------------- 考试模式：保存作答，交卷后评分 ---------------- */
 
-  function examSingle(key) { var q = currentQ(); if (!q) return; state.answers[q.id] = key; renderCard(); renderProgress(); }
-  function examMultipleChange(keys) { var q = currentQ(); if (!q) return; state.answers[q.id] = keys; renderCard(); renderProgress(); }
-  function examMultipleSubmit(keys) { var q = currentQ(); if (!q) return; state.answers[q.id] = keys; App.ui.toast(E.saved || '已保存作答'); renderProgress(); }
-  function examSubjectiveChange(text) { var q = currentQ(); if (!q) return; state.answers[q.id] = text; }
-  function examSubjectiveSubmit(text) { var q = currentQ(); if (!q) return; state.answers[q.id] = text; App.ui.toast(E.saved || '已保存作答'); renderProgress(); }
+  function examSingle(key) {
+    var q = currentQ(); if (!q) return;
+    state.answers[q.id] = key;
+    renderTop(); renderCard(); renderProgress();
+  }
+  function examMultipleChange(keys) {
+    var q = currentQ(); if (!q) return;
+    state.answers[q.id] = keys;
+    renderTop(); renderCard(); renderProgress();
+  }
+  function examSubjectiveChange(text) {
+    var q = currentQ(); if (!q) return;
+    state.answers[q.id] = text;
+    renderTop(); renderProgress();
+  }
 
   /* ---------------- 计时与交卷 ---------------- */
 
@@ -331,56 +404,32 @@
     var questions = state.ids.map(findQuestion).filter(Boolean);
     var g = App.session.gradeExam(questions, state.answers);
 
+    var attemptResults = {};
     g.results.forEach(function (r) {
       state.results[r.q.id] = { ok: r.ok };
+      attemptResults[String(r.q.id)] = r.ok;
       if (r.ok !== null) App.records.setAnswer(state.bank.id, r.q.id, r.ok);
     });
 
-    showSummary(g);
-    render();
-  }
-
-  function showSummary(g) {
-    var ex = state.bank.exam || {};
-    qs('#summaryScore').textContent = g.correct + ' / ' + g.total;
-
-    var passEl = qs('#summaryPass');
-    if (passEl) {
-      if (ex.pass) {
-        var passed = g.correct >= ex.pass;
-        passEl.textContent = passed ? (E.pass || '及格') : (E.fail || '未及格');
-        passEl.classList.toggle('is-pass', passed);
-        passEl.classList.toggle('is-fail', !passed);
-      } else {
-        passEl.textContent = '';
-        passEl.classList.remove('is-pass', 'is-fail');
-      }
+    // 记录本次模拟考试成绩（含答题明细），然后跳转到「考试记录」页
+    var saved = null;
+    if (g.total > 0) {
+      var examDuration = (state.bank.exam && state.bank.exam.duration)
+        ? state.bank.exam.duration : App.config.defaultExamDuration;
+      saved = App.records.addAttempt({
+        bank: state.bank.id,
+        at: Date.now(),
+        correct: g.correct,
+        total: g.total,
+        used: Math.max(0, examDuration - state.exam.remain),
+        pass: (state.bank.exam && state.bank.exam.pass) || 0,
+        ids: state.ids.slice(),
+        answers: state.answers,
+        order: state.optionOrder,
+        results: attemptResults
+      });
     }
 
-    var subj = g.questionCount - g.total;
-    qs('#summaryNote').textContent = subj > 0
-      ? (E.subjectiveNote || '另有 {n} 道主观题，请对照参考答案自行判断。').replace('{n}', subj) : '';
-
-    var list = qs('#summaryList');
-    list.innerHTML = '';
-    g.results.forEach(function (r) {
-      var cls = r.ok === null ? 'summary-item--subj' : (r.ok ? 'summary-item--ok' : 'summary-item--bad');
-      var resHtml = r.ok === null
-        ? (E.subjective || '主观题')
-        : (r.ok ? '&#10003; ' + (E.right || '对') : '&#10007; ' + (E.wrong || '错') + ' · ' + App.ui.formatAnswer(r.q));
-      var row = App.ui.el('div', { class: 'summary-item ' + cls }, [
-        App.ui.el('span', { class: 'summary-item__id', text: '#' + r.q.id }),
-        App.ui.el('span', { class: 'summary-item__brief', text: r.q.brief || '' }),
-        App.ui.el('span', { class: 'summary-item__res', html: resHtml })
-      ]);
-      row.addEventListener('click', function () { closeSummary(); jumpToId(String(r.q.id)); render(); });
-      list.appendChild(row);
-    });
-
-    qs('#summaryOverlay').classList.add('is-open');
-  }
-
-  function closeSummary() {
-    qs('#summaryOverlay').classList.remove('is-open');
+    location.replace(scoresUrl(state.bank.id, saved && saved.id));
   }
 })(window);

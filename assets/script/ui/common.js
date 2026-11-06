@@ -11,7 +11,7 @@
  *   App.ui.h(str)                    -> HTML 转义
  *   App.ui.el(tag, attrs, children)  -> 创建 DOM 节点
  *   App.ui.typeMeta(type)            -> { label, cls }
- *   App.ui.formatAnswer(q)           -> 把正确答案渲染为可读文本（含 HTML）
+ *   App.ui.formatAnswer(q, order?)   -> 把正确答案渲染为可读文本（含 HTML）
  *   App.ui.renderMedia(bank, list)   -> 渲染附加题干，返回容器元素
  *   App.ui.renderQuestion(opts)      -> 渲染题目卡片（见下方 opts 说明）
  *   App.ui.confirm(message, onOk)    -> 确认弹窗
@@ -98,14 +98,37 @@
     return opts[i] != null ? opts[i] : '';
   }
 
-  /** 把正确答案转成可读文本（用于反馈、答题卡） */
-  App.ui.formatAnswer = function (q) {
+  /**
+   * 原始序号 → 展示序号的映射。
+   * 选项乱序后，展示序号按“屏幕上从上到下的位置”重新编号为 A、B、C…，
+   * 与题库里的原始序号无关；未传入 order 时两者相同。
+   */
+  function keyMap(q, order) {
+    var n = (q.options || []).length;
+    var orig = App.session.optionKeys(n);
+    var shown = App.session.optionKeys(n);
+    var map = {};
+    for (var i = 0; i < n; i++) {
+      map[orig[i]] = (order && order.length === n) ? shown[order.indexOf(i)] : orig[i];
+    }
+    return map;
+  }
+
+  /**
+   * 把正确答案转成可读文本（用于反馈、答题卡）。
+   * order 为选项展示顺序（原索引数组），传入后答案序号与屏幕上看到的一致。
+   */
+  App.ui.formatAnswer = function (q, order) {
     if (q.type === 'subjective') return App.ui.h(q.answer || '（无参考答案）');
+    var map = keyMap(q, order);
     if (q.type === 'multiple') {
-      return (q.answer || []).map(function (k) { return App.ui.h(k); }).join('、');
+      var shown = App.session.optionKeys((q.options || []).length);
+      var parts = (q.answer || []).map(function (k) { return map[k] || k; });
+      parts.sort(function (a, b) { return shown.indexOf(a) - shown.indexOf(b); });
+      return parts.map(function (k) { return App.ui.h(k); }).join('、');
     }
     var txt = optionText(q, q.answer);
-    return App.ui.h(q.answer) + (txt ? ' · ' + App.ui.h(txt) : '');
+    return App.ui.h(map[q.answer] || q.answer) + (txt ? ' · ' + App.ui.h(txt) : '');
   };
 
   /** 渲染附加题干（图片自动展示 / 文件下载 / 音频 / 视频），返回容器 */
@@ -150,8 +173,9 @@
    *   result,               // null | { ok: boolean } —— 非空时展示反馈并锁定
    *   selfMark,             // boolean —— 主观题“提交后待自评”状态
    *   onSingle(key),        // 单选点击（normal 模式=判题，exam 模式=保存）
-   *   onMultipleChange(keys), onMultipleSubmit(keys),
-   *   onSubjectiveSubmit(text), onSelfMark(ok)   // 主观题自评
+   *   onMultipleChange(keys), onMultipleSubmit(keys),   // 后者缺省则不显示提交键
+   *   multiHint,            // 多选题下方的说明文字（可选）
+   *   onSubjectiveSubmit(text), subjectiveHint, onSelfMark(ok)   // 主观题
    * }
    */
   App.ui.renderQuestion = function (opts) {
@@ -179,7 +203,7 @@
     if (opts.selfMark) {
       c.appendChild(renderSelfMark(opts));
     } else if (opts.result) {
-      c.appendChild(renderFeedback(opts.q, opts.result.ok));
+      c.appendChild(renderFeedback(opts.q, opts.result.ok, opts.order));
     }
   };
 
@@ -187,7 +211,9 @@
     var q = opts.q;
     var multi = q.type === 'multiple';
     var optTexts = q.options || [];
-    var keys = App.session.optionKeys(optTexts.length);
+    var origKeys = App.session.optionKeys(optTexts.length);
+    // 展示序号按屏幕位置重排为 A、B、C…，与题库原始序号解耦，避免选项乱序后序号泄露答案
+    var shownKeys = App.session.optionKeys(optTexts.length);
 
     // 选项展示顺序：默认原顺序；可传入打乱后的“原索引”数组
     var order = opts.order;
@@ -203,8 +229,9 @@
     var locked = !!opts.result; // 判题后锁定
     var wrap = App.ui.el('div', { class: 'q-options' });
 
-    order.forEach(function (oi) {
-      var key = keys[oi];
+    order.forEach(function (oi, pos) {
+      var key = origKeys[oi];      // 原始序号：判题、保存用
+      var shown = shownKeys[pos];  // 展示序号：与屏幕位置一致
       var text = optTexts[oi];
       var isOn = selected.indexOf(key) >= 0;
       var cls = ['opt', multi ? 'opt--multiple' : 'opt--single'];
@@ -215,8 +242,8 @@
         else if (isOn) cls.push('is-wrong');
         cls.push('is-locked');
       }
-      var btn = App.ui.el('button', { class: cls.join(' '), type: 'button', 'data-key': key }, [
-        App.ui.el('span', { class: 'opt__key' + (multi ? ' opt__key--square' : ' opt__key--circle'), text: key }),
+      var btn = App.ui.el('button', { class: cls.join(' '), type: 'button', 'data-key': shown }, [
+        App.ui.el('span', { class: 'opt__key' + (multi ? ' opt__key--square' : ' opt__key--circle'), text: shown }),
         App.ui.el('span', { class: 'opt__text', html: App.ui.h(text) })
       ]);
       if (!locked) {
@@ -225,7 +252,7 @@
             var sel = selected.slice();
             var p = sel.indexOf(key);
             if (p >= 0) sel.splice(p, 1); else sel.push(key);
-            sel.sort(function (a, b) { return keys.indexOf(a) - keys.indexOf(b); });
+            sel.sort(function (a, b) { return origKeys.indexOf(a) - origKeys.indexOf(b); });
             if (opts.onMultipleChange) opts.onMultipleChange(sel);
           } else if (opts.onSingle) {
             opts.onSingle(key);
@@ -235,13 +262,18 @@
       wrap.appendChild(btn);
     });
 
-    // 多选：确定键
+    // 多选：普通模式用“提交答案”判题；考试模式选择即保存，不显示确定键
     if (multi && !locked) {
-      var confirmBtn = App.ui.el('button', { class: 'btn btn--primary q-options__confirm', type: 'button', text: T.confirm || '确定' });
-      confirmBtn.addEventListener('click', function () {
-        if (opts.onMultipleSubmit) opts.onMultipleSubmit(selected.slice());
-      });
-      wrap.appendChild(App.ui.el('div', { class: 'q-options__actions' }, [confirmBtn]));
+      if (opts.multiHint) {
+        wrap.appendChild(App.ui.el('div', { class: 'q-hint', text: opts.multiHint }));
+      }
+      if (opts.onMultipleSubmit) {
+        var confirmBtn = App.ui.el('button', { class: 'btn btn--primary q-options__confirm', type: 'button', text: T.submitAnswer || '提交答案' });
+        confirmBtn.addEventListener('click', function () {
+          opts.onMultipleSubmit(selected.slice());
+        });
+        wrap.appendChild(App.ui.el('div', { class: 'q-options__actions' }, [confirmBtn]));
+      }
     }
     return wrap;
   }
@@ -262,12 +294,15 @@
     }
     wrap.appendChild(ta);
 
-    if (!locked) {
+    if (!locked && opts.onSubjectiveSubmit) {
       var btn = App.ui.el('button', { class: 'btn btn--primary q-subjective__submit', type: 'button', text: T.submitAnswer || '提交答案' });
       btn.addEventListener('click', function () {
-        if (opts.onSubjectiveSubmit) opts.onSubjectiveSubmit(ta.value);
+        opts.onSubjectiveSubmit(ta.value);
       });
       wrap.appendChild(App.ui.el('div', { class: 'q-subjective__actions' }, [btn]));
+    }
+    if (!locked && opts.subjectiveHint) {
+      wrap.appendChild(App.ui.el('div', { class: 'q-hint', text: opts.subjectiveHint }));
     }
     return wrap;
   }
@@ -285,7 +320,7 @@
     return box;
   }
 
-  function renderFeedback(q, ok) {
+  function renderFeedback(q, ok, order) {
     var box = App.ui.el('div', { class: 'feedback ' + (ok ? 'feedback--ok' : 'feedback--bad') });
 
     // 主观题：只展示参考答案与题解（ok 可为 true/false/null，表示自评结果或“待对照”）
@@ -304,7 +339,7 @@
 
     box.appendChild(App.ui.el('div', { class: 'feedback__head', html: ok
       ? '<span class="feedback__icon">&#10003;</span> ' + (T.correct || '回答正确')
-      : '<span class="feedback__icon">&#10007;</span> ' + (T.wrongAnswer || '回答错误，正确答案：') + '<b>' + App.ui.formatAnswer(q) + '</b>' }));
+      : '<span class="feedback__icon">&#10007;</span> ' + (T.wrongAnswer || '回答错误，正确答案：') + '<b>' + App.ui.formatAnswer(q, order) + '</b>' }));
     if (q.explain) box.appendChild(App.ui.el('div', { class: 'feedback__explain', html: '<strong>' + (T.explain || '题解：') + '</strong>' + App.ui.h(q.explain) }));
     return box;
   }

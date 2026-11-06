@@ -23,6 +23,8 @@
 
     App.data.getBank(id).then(function (bank) {
       document.title = bank.title + ' · 刷题';
+      var scoresLink = qs('#scoresLink');
+      if (scoresLink) scoresLink.href = App.url('scores.html?bank=' + encodeURIComponent(bank.id));
       render(bank);
     }).catch(function (err) {
       App.ui.toast('题库加载失败：' + err.message);

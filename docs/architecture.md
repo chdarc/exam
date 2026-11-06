@@ -6,9 +6,9 @@
 ┌─────────────────────────────────────────────────────┐
 │  显示交互层  ui/home.js  ui/bank.js                  │
 │              ui/practice.js  ui/records.js           │
-│              ui/common.js（共享渲染 / 工具）           │
+│              ui/scores.js  ui/common.js（共享渲染）    │
 ├─────────────────────────────────────────────────────┤
-│  业务处理层  records.js（作答记录 / 收藏）             │
+│  业务处理层  records.js（作答记录 / 收藏 / 成绩）       │
 │              session.js（会话构建 / 判题 / 评分）       │
 ├─────────────────────────────────────────────────────┤
 │  数据读取层  data.js（题库 / 目录加载与缓存）           │
@@ -49,8 +49,10 @@ config.js → site.js → store.js → data.js → records.js → session.js →
 1. **门户加载**：封面文案直接写在 `index.html`；`home.js` → `data.getCatalog()` → 渲染题库目录列表。
 2. **进入刷题**：`bank.html?id=a` → `bank.js` → `data.getBank('a')` → `records.stats()` 展示进度，并读取 `bank.exam` 展示模拟考试信息；点“顺序刷题”跳转 `practice.html?bank=a&mode=sequential`。
 3. **作答**：`practice.js` 收到作答 → `session.check()` 判题 → `records.setAnswer()` 写入 → `ui.renderQuestion()` 展示反馈。
-4. **收藏**：`records.toggleFavorite()` 写入 → 更新按钮状态。
-5. **记录页**：`records.js` → `records.favoriteList() / wrongList()` → 渲染列表。
+4. **交卷**：`session.gradeExam()` 评分 → `records.setAnswer()` 逐题写入 → `records.addAttempt()` 追加成绩与答题明细 → 跳转 `scores.html?bank=<id>&attempt=<id>`；考试记录页读取 `records.attempts()` 展示与回顾。
+5. **回顾**：`practice.html?bank=a&mode=review&attempt=<id>&scope=all|wrong` → `records.attempt(id)` 取明细 → 锁定选项并展示答案与题解。
+6. **收藏**：`records.toggleFavorite()` 写入 → 更新按钮状态。
+7. **记录页**：`records.js` → `records.favoriteList() / wrongList()` → 渲染列表。
 
 ## 存储键约定
 
@@ -59,6 +61,7 @@ config.js → site.js → store.js → data.js → records.js → session.js →
 | 键 | 内容 | 说明 |
 | --- | --- | --- |
 | `examapp:record.<bankId>` | `{ answer: {qid: "correct"|"wrong"}, favorite: [qid...] }` | 每个题库一份作答记录 |
+| `examapp:attempts` | `[{ id, bank, at, correct, total, used, pass, ids, answers, order, results }, ...]` | 模拟考试成绩与答题明细（旧 → 新，最多 300 条） |
 | `examapp:theme` | `"light"` / `"dark"`（缺省=跟随系统） | 主题偏好（由 theme.js 写入） |
 
 另有一项会话级 UI 状态存于 `sessionStorage`：`examapp:recordsTab:<bankId>`（记录页当前 Tab），用于返回时保持所看的“收藏 / 错题”。

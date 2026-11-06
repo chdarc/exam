@@ -62,6 +62,8 @@
       state.bank = bank;
       (bank.questions || []).forEach(function (q) { state.byId[String(q.id)] = q; });
       qs('#bankTitle').textContent = bank.title;
+      var scoresLink = qs('#scoresLink');
+      if (scoresLink) scoresLink.href = App.url('scores.html?bank=' + encodeURIComponent(bankId));
       setTab(state.tab);
     }).catch(function (err) {
       App.ui.toast('题库加载失败：' + err.message);

@@ -368,3 +368,163 @@
 .record-item__id { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--primary); flex: none; }
 .record-item__brief { flex: 1; color: var(--text-muted); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .record-item__go { color: var(--text-muted); font-size: 20px; }
+
+/* ================= 考试记录页 ================= */
+
+.scores {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 顶部题库切换 */
+.score-banks { display: flex; flex-wrap: wrap; gap: 8px; }
+.score-filter {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 13px;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.score-filter:hover { border-color: var(--primary); color: var(--primary); }
+.score-filter.is-active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* 详情卡：某次考试的结果 */
+.score-detail { padding: 24px 20px; text-align: center; scroll-margin-top: 72px; }
+.score-detail__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; text-align: left; }
+.score-detail__bank { font-size: 16px; font-weight: 700; }
+.score-detail__date { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.score-detail__value { display: flex; align-items: baseline; justify-content: center; gap: 4px; margin-top: 14px; }
+.score-detail__num { font-size: 56px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.score-detail__unit { font-size: 16px; color: var(--text-muted); }
+.score-detail__badge {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 3px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.score-detail__badge.is-pass { background: var(--success-soft); color: var(--success); }
+.score-detail__badge.is-fail { background: var(--danger-soft); color: var(--danger); }
+.score-detail__meta { margin-top: 10px; font-size: 13px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.score-detail__hint { margin-top: 10px; font-size: 12px; color: var(--warn); }
+.score-detail__empty { padding: 30px 10px 34px; text-align: center; color: var(--text-muted); }
+.score-detail__cta { margin-top: 16px; }
+
+.score-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+.score-actions .btn { padding: 10px 6px; font-size: 14px; white-space: nowrap; }
+.btn.is-disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
+
+/* 卡块头部 */
+.score-card { padding: 20px; }
+.score-card__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.score-card__title { font-size: 16px; font-weight: 700; }
+.score-card__hint { font-size: 12px; color: var(--text-muted); }
+
+/* 考试记录列表 */
+.score-table__head,
+.score-row {
+  display: grid;
+  grid-template-columns: 1.5fr .8fr .9fr;
+  align-items: center;
+  gap: 8px;
+}
+.score-table__head { padding: 8px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
+.score-table__head span:last-child { text-align: right; }
+.score-row {
+  padding: 11px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .15s, box-shadow .15s;
+}
+.score-row:last-child { border-bottom: none; }
+.score-row:hover { background: var(--surface-2); }
+.score-row.is-active { background: var(--primary-soft); box-shadow: inset 3px 0 0 var(--primary); }
+.score-row__date { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.score-row__score { font-weight: 700; font-variant-numeric: tabular-nums; }
+.score-row__score.is-pass { color: var(--success); }
+.score-row__score.is-fail { color: var(--danger); }
+.score-row__time { text-align: right; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.score-table__empty { padding: 30px 10px 36px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+/* 成绩概览（次要信息） */
+.score-overview { padding: 20px; }
+.score-rings { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 8px 0 4px; }
+.score-ring-wrap { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.score-ring {
+  width: 100%;
+  max-width: 104px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background: conic-gradient(var(--ring-color) calc(var(--pct) * 1%), var(--surface-2) 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.score-ring__inner {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--border);
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+}
+.score-ring__num { font-size: 27px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.score-ring__unit { font-size: 12px; color: var(--text-muted); }
+.score-ring__label { font-size: 13px; color: var(--text-muted); }
+
+.score-chart { width: 100%; min-height: 240px; }
+.score-chart svg { display: block; max-width: 100%; height: auto; }
+
+.chart-grid { stroke: var(--border); stroke-width: 1; }
+.chart-label { fill: var(--text-muted); font-size: 11px; }
+.chart-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart-line--score { stroke: var(--danger); }
+.chart-line--time { stroke: var(--primary); }
+.chart-dot { fill: var(--surface); stroke-width: 2; }
+.chart-dot--score { stroke: var(--danger); }
+.chart-dot--time { stroke: var(--primary); }
+
+.score-legend { display: flex; justify-content: center; gap: 22px; font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.score-legend__dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.score-legend__dot--score { background: var(--danger); }
+.score-legend__dot--time { background: var(--primary); }
+
+@media (max-width: 360px) {
+  .score-ring__num { font-size: 22px; }
+  .score-ring__unit { font-size: 11px; }
+  .score-rings { gap: 6px; }
+  .score-row { font-size: 13px; }
+  .score-row__date { font-size: 12px; }
+  .score-table__head { font-size: 11px; }
+  .score-detail__num { font-size: 46px; }
+  .score-actions .btn { font-size: 13px; padding: 10px 4px; }
+}
+
+/* 门户封面右上角的「我的成绩」入口 */
+.cover__nav {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 3;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .35);
+  background: rgba(255, 255, 255, .1);
+  color: #fff;
+  font-size: 14px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background .15s;
+}
+.cover__nav:hover { background: rgba(255, 255, 255, .22); }

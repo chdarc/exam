@@ -56,17 +56,39 @@
       clearWrong: '确定清除全部错题记录？'
     },
 
+    /* ---------- 考试记录页 ---------- */
+    scores: {
+      totalBank: '总题库',
+      average: '平均成绩',
+      best: '最好成绩',
+      latest: '最新成绩',
+      empty: '该题库还没有考试记录。',
+      emptyBtn: '去模拟考试',
+      emptyHistory: '该题库还没有考试记录。',
+      noDetail: '该记录没有保存答题明细，无法回顾。',
+      noWrong: '本次考试没有错题',
+      correct: '答对',
+      used: '用时',
+      pass: '及格',
+      fail: '未及格',
+      back: '返回',
+      reviewAll: '逐题查看',
+      reviewWrong: '查看错题',
+      clearConfirm: '确定清空该题库的全部考试记录？',
+      cleared: '已清空考试记录',
+      noClear: '暂无考试记录',
+      date: '日期',
+      score: '得分',
+      time: '用时'
+    },
+
     /* ---------- 模拟考试相关 ---------- */
     exam: {
-      saved: '已保存作答',
       submitted: '已交卷',
       submit: '交卷',
-      subjectiveNote: '另有 {n} 道主观题，请对照参考答案自行判断。',
-      subjective: '主观题',
-      right: '对',
-      wrong: '错',
-      pass: '及格',
-      fail: '未及格'
+      multiHintExam: '选择即记录，无需确认；交卷后统一判题',
+      multiHint: '可多选，选好后点「提交答案」判题',
+      subjectiveHint: '作答实时记录；交卷后统一评分'
     },
 
     /* ---------- 通用界面文案（由 JS 渲染的部分） ---------- */

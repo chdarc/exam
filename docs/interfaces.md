@@ -23,7 +23,8 @@
 | `App.site.modes` | 刷题模式卡片：`{ sequential / random / exam / records }`，每项含 `title`、`desc`、`icon`（内联 SVG） |
 | `App.site.empty` | 空状态文案：`home`、`practice.{wrong/favorite/none}`、`records.{favorite/wrong}` |
 | `App.site.records` | 记录页清除确认文案：`clearFavorite` / `clearWrong` |
-| `App.site.exam` | 考试相关文案：`submit / submitted / saved / pass / fail / subjectiveNote / …` |
+| `App.site.scores` | 考试记录页文案：`average / best / latest / empty* / back / reviewAll / reviewWrong / clearConfirm / date / score / time / …` |
+| `App.site.exam` | 考试相关文案：`submit / submitted / multiHint / multiHintExam / subjectiveHint` |
 | `App.site.ui` | 通用界面文案：`confirm / cancel / submitAnswer / reference / explain / …` |
 
 ## theme.js（昼夜主题）
@@ -63,6 +64,10 @@
 | `App.records.wrongList(bankId)` | 返回错题题号数组 |
 | `App.records.favoriteList(bankId)` | 返回收藏题号数组（按加入顺序） |
 | `App.records.stats(bankId, total)` | 返回 `{ total, correct, wrong, done }` |
+| `App.records.addAttempt(attempt)` | 追加一条模拟考试成绩 `{ bank, at, correct, total, used, pass, ids, answers, order, results }`，返回规范化后的记录（含 id）；字段不全时忽略 |
+| `App.records.attempts()` | 返回全部成绩记录（已规范化，按时间从旧到新） |
+| `App.records.attempt(id)` | 按 id 查找某次成绩（无则 `null`） |
+| `App.records.clearAttempts(bankId?)` | 清空成绩记录：不传 bankId 清空全部，传入则仅清空该题库 |
 | `App.records.clear(bankId)` | 清空该题库全部记录 |
 | `App.records.clearFavorites(bankId)` | 仅清空该题库收藏 |
 | `App.records.clearWrong(bankId)` | 仅清空该题库错题（删除所有“wrong”作答，保留“correct”） |
@@ -71,7 +76,7 @@
 
 | 接口 | 说明 |
 | --- | --- |
-| `App.session.MODES` | 支持的刷题模式数组：`sequential / random / exam / wrong / favorite` |
+| `App.session.MODES` | 支持的刷题模式数组：`sequential / random / exam / review / wrong / favorite` |
 | `App.session.shuffle(arr)` | 返回打乱后的副本 |
 | `App.session.shuffledIndices(n)` | 返回打乱后的 `[0..n-1]`（用于选项乱序） |
 | `App.session.optionKeys(count)` | 生成选项键 `['A','B','C',...]`（支持超过 26 个） |
@@ -86,7 +91,7 @@
 | `App.ui.h(str)` | HTML 转义 |
 | `App.ui.el(tag, attrs?, children?)` | 创建 DOM 节点（支持 `class/text/html/on*` 等属性） |
 | `App.ui.typeMeta(type)` | 返回题型 `{ label, cls }` |
-| `App.ui.formatAnswer(q)` | 把正确答案渲染为可读文本 |
+| `App.ui.formatAnswer(q, order?)` | 把正确答案渲染为可读文本；传入选项展示顺序 `order` 时，答案序号与屏幕上的 A/B/C/D 一致 |
 | `App.ui.renderMedia(bank, mediaList)` | 渲染附加题干，返回容器 |
 | `App.ui.renderQuestion(opts)` | 渲染题目卡片（见下） |
 | `App.ui.confirm(message, onOk)` | 确认弹窗（“取消 / 确定”） |
@@ -98,22 +103,25 @@
 App.ui.renderQuestion({
   container,          // 渲染目标 DOM
   bank, q,            // 题库与题目
-  value,              // 当前已保存作答（单选 'A' / 多选 ['A','C'] / 主观 '文本'）
+  value,              // 当前已保存作答（题库原始序号：单选 'A' / 多选 ['A','C'] / 主观 '文本'）
   order,              // 选项展示顺序（原选项索引数组，可选；缺省按原顺序）
+                      // 屏幕上的 A/B/C/D 按展示位置重新编号，回调仍返回原始序号
   result,             // null | { ok: boolean|null } —— 非空时展示反馈并锁定
   selfMark,           // boolean —— 主观题“提交后待自评”状态
   onSingle(key),                          // 单选点击
   onMultipleChange(keys),                 // 多选切换（实时）
-  onMultipleSubmit(keys),                 // 多选确定
+  onMultipleSubmit(keys),                 // 多选提交（可选；缺省则不渲染提交键，如考试模式）
+  multiHint,                              // 多选题下方说明文字（可选）
   onSubjectiveChange(text),               // 主观输入
-  onSubjectiveSubmit(text),               // 主观提交
+  onSubjectiveSubmit(text),               // 主观提交（可选；缺省则不渲染提交键）
+  subjectiveHint,                         // 主观题下方说明文字（可选）
   onSelfMark(ok)                          // 主观自评
 });
 ```
 
 ## 页面模块
 
-各页面模块（`ui/home.js`、`ui/bank.js`、`ui/practice.js`、`ui/records.js`）不暴露额外公共接口，仅在 `App.ready` 中初始化，通过 `document.body[data-page]` 识别当前页面。
+各页面模块（`ui/home.js`、`ui/bank.js`、`ui/practice.js`、`ui/records.js`、`ui/scores.js`）不暴露额外公共接口，仅在 `App.ready` 中初始化，通过 `document.body[data-page]` 识别当前页面。
 
 ## 页面路由（URL 参数）
 
@@ -122,8 +130,12 @@ App.ui.renderQuestion({
 | `index.html` | — | 门户首页 |
 | `bank.html` | `id` | 题库 id |
 | `practice.html` | `bank` | 题库 id（必填） |
-| | `mode` | `sequential / random / exam / wrong / favorite`（默认 sequential） |
+| | `mode` | `sequential / random / exam / review / wrong / favorite`（默认 sequential） |
 | | `count` | 考试模式抽题数（可选，默认全部） |
 | | `q` | 打开后跳转到指定题号（可选） |
+| | `attempt` | 复习模式：历史考试 id（必填） |
+| | `scope` | 复习模式：`all`（逐题查看，默认）/ `wrong`（只看错题） |
 | `records.html` | `bank` | 题库 id |
 | | `tab` | 初始 Tab：`favorite` / `wrong`（缺省 `favorite`，其次读取上次会话 Tab） |
+| `scores.html` | `bank` | 题库 id（可选；缺省选中最近有记录的那个题库） |
+| | `attempt` | 默认选中的历史考试 id（可选） |

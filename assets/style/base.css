@@ -121,3 +121,6 @@ h1, h2, h3, p { margin: 0; }
   font-size: 13px;
   padding: 32px 20px;
 }
+.site-footer__link { color: var(--primary); }
+.site-footer__link:hover { text-decoration: underline; }
+.site-footer__sep { margin: 0 8px; }

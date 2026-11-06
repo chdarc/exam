@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>考试记录</title>
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('examapp:theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="assets/style/base.css">
+  <link rel="stylesheet" href="assets/style/components.css">
+  <link rel="stylesheet" href="assets/style/pages.css">
+</head>
+<body data-page="scores">
+  <header class="topbar">
+    <button class="topbar__btn" id="backBtn">&#8249; 返回</button>
+    <div class="topbar__title">考试记录</div>
+    <div class="topbar__right">
+      <button class="topbar__btn" id="clearBtn" type="button">清空</button>
+    </div>
+  </header>
+
+  <main class="scores">
+    <div class="score-banks" id="scoreBanks"></div>
+
+    <section class="score-detail card" id="scoreDetail"></section>
+
+    <section class="score-history card">
+      <div class="score-card__head">
+        <h2 class="score-card__title">考试记录</h2>
+        <span class="score-card__hint" id="historyHint"></span>
+      </div>
+      <div class="score-table" id="scoreTable"></div>
+    </section>
+
+    <section class="score-overview card" id="scoreOverview">
+      <div class="score-card__head">
+        <h2 class="score-card__title">成绩概览</h2>
+        <span class="score-card__hint" id="scoreChartHint"></span>
+      </div>
+      <div class="score-rings" id="scoreRings"></div>
+      <div class="score-chart" id="scoreChart"></div>
+      <div class="score-legend">
+        <span><i class="score-legend__dot score-legend__dot--score"></i>得分</span>
+        <span><i class="score-legend__dot score-legend__dot--time"></i>用时（分钟）</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/script/config.js"></script>
+  <script src="assets/script/site.js"></script>
+  <script src="assets/script/store.js"></script>
+  <script src="assets/script/data.js"></script>
+  <script src="assets/script/records.js"></script>
+  <script src="assets/script/session.js"></script>
+  <script src="assets/script/ui/common.js"></script>
+  <script src="assets/script/ui/scores.js"></script>
+  <script src="assets/script/theme.js"></script>
+</body>
+</html>
